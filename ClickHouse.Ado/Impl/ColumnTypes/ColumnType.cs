@@ -30,7 +30,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Date", typeof(DateColumnType)},
             {"DateTime", typeof(DateTimeColumnType)},
             {"String", typeof(StringColumnType)},
-            {"Null", typeof(NullColumnType)}
+            {"Null", typeof(NullColumnType)},
+            {"Nothing", typeof(NothingColumnType)}
         };
 
         internal abstract Type CLRType { get; }

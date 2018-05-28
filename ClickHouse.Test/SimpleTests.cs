@@ -182,5 +182,16 @@ namespace ClickHouse.Test
                 cnn.CreateCommand(sql).ExecuteNonQuery();
             }
         }
+
+        [TestMethod]
+        public void TestNull()
+        {
+            using (var cnn = GetConnection())
+            {
+                var sql = "select null";
+                var result = cnn.CreateCommand(sql).ExecuteScalar();
+                Assert.AreEqual(null, result);
+            }
+        }
     }
 }

@@ -193,5 +193,17 @@ namespace ClickHouse.Test
                 Assert.AreEqual(null, result);
             }
         }
+        
+        [TestMethod]
+        public void TestEmptyArray()
+        {
+            using (var cnn = GetConnection())
+            {
+                var sql = "select []";
+                var result = cnn.CreateCommand(sql).ExecuteScalar();
+                Assert.IsInstanceOfType(result, typeof(object[]));
+                Assert.AreEqual(0, ((object[])result).Length);
+            }
+        }
     }
 }

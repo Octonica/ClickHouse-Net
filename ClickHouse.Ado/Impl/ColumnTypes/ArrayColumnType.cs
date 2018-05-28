@@ -18,12 +18,14 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public SimpleColumnType<ulong> Offsets { get; private set; }
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
+            _arrayRows = rows;
             Offsets.Read(formatter, rows);
             var totalRows = Offsets.Data.Last();
             InnerType.Read(formatter,(int) totalRows);
         }
 
-        public override int Rows => InnerType.Rows;
+        private int _arrayRows;
+        public override int Rows => Math.Max(InnerType.Rows, _arrayRows);
         internal override Type CLRType => InnerType.CLRType.MakeArrayType();
 
         public override void ValueFromConst(Parser.ValueType val)

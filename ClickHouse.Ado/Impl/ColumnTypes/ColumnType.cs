@@ -38,6 +38,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
+        private static readonly Regex DateTimeRegex = new Regex(@"^DateTime\('(?<timezone>.+)'\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static ColumnType Create(string name)
         {
@@ -85,6 +86,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                             return new EnumColumnType(m.Groups["outer"].Value == "Enum8" ? 8 : 16, parser.result);
                         }
                 }
+            }
+            m = DateTimeRegex.Match(name);
+            if (m.Success)
+            {
+                var timezone = m.Groups["timezone"].Value;
+                if (timezone == "Etc/GMT" || timezone == "Etc/UTC")
+                    return new DateTimeColumnType();
+
+                throw new NotImplementedException("DateTime with timezone is not supported");
             }
             throw new NotSupportedException($"Unknown column type {name}");
         }

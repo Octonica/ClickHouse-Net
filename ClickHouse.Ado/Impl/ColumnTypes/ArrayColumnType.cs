@@ -18,14 +18,16 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public SimpleColumnType<ulong> Offsets { get; private set; }
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            _arrayRows = rows;
             Offsets.Read(formatter, rows);
+            _outerRows = rows;
             var totalRows = Offsets.Data.Last();
             InnerType.Read(formatter,(int) totalRows);
         }
 
-        private int _arrayRows;
-        public override int Rows => Math.Max(InnerType.Rows, _arrayRows);
+        private int _outerRows;
+
+        public override int Rows => _outerRows;
+        
         internal override Type CLRType => InnerType.CLRType.MakeArrayType();
 
         public override void ValueFromConst(Parser.ValueType val)
@@ -83,12 +85,18 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             var offsets = new List<ulong>();
             var itemsPlain = new List<object>();
             ulong currentOffset = 0;
-            foreach (var item in objects.Cast<IEnumerable<object>>())
+            foreach (var item in objects)
             {
-                currentOffset += (ulong)item.Count();
+                ulong itemCount = 0;
+                foreach (var itemPart in (IEnumerable)item)
+                {
+                    itemCount++;
+                    itemsPlain.Add(itemPart);
+                }
+                currentOffset += itemCount;
                 offsets.Add(currentOffset);
-                itemsPlain.AddRange(item);
             }
+            
             Offsets.ValuesFromConst(offsets);
             InnerType.ValuesFromConst(itemsPlain);
         }
